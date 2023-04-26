@@ -10,6 +10,6 @@
 
 * Added screenshot
 
-## 0.1.4+4
+## 0.1.3+4
 
 * Updated readme
