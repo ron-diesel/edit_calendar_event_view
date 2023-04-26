@@ -1,15 +1,15 @@
 # edit_calendar_event_view
 
-Opens native edit calendar event view
+Opens native iOS event event viewController to add or edit calendar events.
+
+
+https://user-images.githubusercontent.com/49081301/234650245-fe43261d-527c-4f27-aecf-dec3d44395e6.mp4
+
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+# for iOS:
 
-For help getting started with Flutter development, view the
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+add "NSCalendarsUsageDescription" to your Info.plist.
+
 
