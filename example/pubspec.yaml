@@ -1,6 +1,6 @@
 name: edit_calendar_event_view_example
 description: Demonstrates how to use the edit_calendar_event_view plugin.
-version: 0.1.2+3
+version: 0.1.4+4
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
