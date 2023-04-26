@@ -17,3 +17,7 @@
 ## 0.1.4+5
 
 * Fixed example gif url
+
+## 0.1.4+6
+
+* Fixed example gif url
