@@ -30,7 +30,7 @@ import 'package:edit_calendar_event_view/edit_calendar_event_view.dart';
 
 final newEventId = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle", calendarId: "0123456789", description: "exampleDescription", startDate: DateTime.now(), endDate: DateTime.now().add(Duration(days: 1), allDay: true);
        
-final editedEventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
+final editedEventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: newEventId);
 ```
 
 ## Example

@@ -1,28 +1,23 @@
-## 0.1.0
+## 0.1.5+10
 
-* Initial release with iOS support.
+* changed return value to "deleted" instead of null if the event got deleted
 
-## 0.1.1+2
+## 0.1.4+7
 
-* Minor adjustments for pub release
-
-## 0.1.2+3
-
-* Added screenshot
+* Fixed example gif url
 
 ## 0.1.3+4
 
 * Updated readme
 
-## 0.1.4+5
+## 0.1.2+3
 
-* Fixed example gif url
+* Added screenshot
 
-## 0.1.4+6
+## 0.1.1+2
 
-* Fixed example gif url
+* Minor adjustments for pub release
 
+## 0.1.0+1
 
-## 0.1.4+7
-
-* Fixed example gif url
+* Initial release with iOS support.
