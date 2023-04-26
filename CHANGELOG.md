@@ -2,6 +2,10 @@
 
 * Initial release with iOS support.
 
-## 0.1.1
+## 0.1.1+2
 
 * Minor adjustments for pub release
+
+## 0.1.2+3
+
+* Added screenshot
