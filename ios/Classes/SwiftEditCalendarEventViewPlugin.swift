@@ -109,7 +109,7 @@ public class SwiftEditCalendarEventViewPlugin: NSObject, FlutterPlugin, EKEventE
             if let rootVC = UIApplication.shared.windows.first?.rootViewController {
                 rootVC.dismiss(animated: true, completion: nil)
             }
-            result?(controller.event?.eventIdentifier)
+            result?(action == .saved ? controller.event?.eventIdentifier : nil)
             result = nil
         }
         

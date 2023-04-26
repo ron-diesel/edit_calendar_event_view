@@ -41,9 +41,16 @@ class _MyAppState extends State<MyApp> {
                 if (eventId != null)
                 ElevatedButton(
                   onPressed: () async {
-                    await EditCalendarEventView.addOrEditCalendarEvent(eventId: eventId);
+                    final eventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
+                    setState(() {
+                      this.eventId = eventId;
+                    });
                   },
-                  child: Text('Edit event\n$eventId'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text('Edit event\n$eventId',
+                    textAlign: TextAlign.center),
+                  ),
                 ),
               ],
             ),
