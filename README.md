@@ -10,7 +10,7 @@ Opens native iOS event viewController to add or edit calendar events.
 |-------------|-------|
 | **Support** | 11.0+ |
 
-![The example app running in iOS](https://github.com/chris-wolf/edit_calendar_event_view/tree/main/example/videos/edit_calendar_event_view_preview.gif?raw=true)
+![The example app running in iOS](https://github.com/chris-wolf/edit_calendar_event_view/blob/main/example/videos/edit_calendar_event_view_preview.gif?raw=true)
 
 ## Installation
 

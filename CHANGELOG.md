@@ -13,3 +13,7 @@
 ## 0.1.3+4
 
 * Updated readme
+
+## 0.1.4+5
+
+* Fixed example gif url
