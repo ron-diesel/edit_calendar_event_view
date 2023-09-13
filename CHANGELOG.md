@@ -1,4 +1,4 @@
-## 0.2.2+22
+## 0.2.3+23
 
 * added cancel to resultType
 
