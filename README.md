@@ -5,7 +5,9 @@
 [![pub package](https://img.shields.io/pub/v/edit_calendar_event_view.svg)](https://pub.dev/packages/edit_calendar_event_view)
 
 iOS: Opens native event viewController to add or edit calendar events.
+
 Android: Start intent for adding or editing calendar events.
+
 > :warning: **Will always return ResultType.unkown for Android since the intent doesn't return a resultr**
 
 |             | iOS   | Android |
