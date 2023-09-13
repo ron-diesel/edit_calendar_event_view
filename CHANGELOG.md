@@ -1,4 +1,8 @@
 
+## 0.2.2+22
+
+* small readme fix
+
 ## 0.2.1+21
 
 * small readme fix

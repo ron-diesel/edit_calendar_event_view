@@ -40,9 +40,11 @@ Since events are created via intent, no steps or permissions are necessary to cr
 ```
 import 'package:edit_calendar_event_view/edit_calendar_event_view.dart';
 
-final newEventId = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle", calendarId: "0123456789", description: "exampleDescription", startDate: DateTime.now(), endDate: DateTime.now().add(Duration(days: 1), allDay: true);
-       
-final editedEventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: newEventId);
+final result = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle", calendarId: "0123456789", description: "exampleDescription", startDate: DateTime.now(), endDate: DateTime.now().add(Duration(days: 1), allDay: true);
+if (result.resultType == ResultType.saved) {
+    final newResult = await EditCalendarEventView.addOrEditCalendarEvent(eventId: result.eventId);
+}
+
 ```
 
 ## Example
