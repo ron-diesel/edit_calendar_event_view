@@ -1,4 +1,5 @@
 import 'package:edit_calendar_event_view/edit_calendar_event_view.dart';
+import 'package:edit_calendar_event_view/edit_calendar_event_view_method_channel.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -33,9 +34,18 @@ class _MyAppState extends State<MyApp> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    final eventId = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle");
+                    final result = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle");
                     setState(() {
-                      this.eventId = eventId;
+                      switch(result.resultType) {
+                        case ResultType.saved:
+                          eventId = result.eventId;
+                          break;
+                        case ResultType.deleted:
+                          eventId = null;
+                          break;
+                        case ResultType.unknown:
+                          break;
+                      }
                     });
                   },
                   child: Text('Add event'),
@@ -43,9 +53,18 @@ class _MyAppState extends State<MyApp> {
                 if (eventId != null)
                 ElevatedButton(
                   onPressed: () async {
-                    final eventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
+                    final result = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
                     setState(() {
-                      this.eventId = eventId;
+                      switch(result.resultType) {
+                        case ResultType.saved:
+                          eventId = result.eventId;
+                          break;
+                        case ResultType.deleted:
+                          eventId = null;
+                          break;
+                        case ResultType.unknown:
+                          break;
+                      }
                     });
                   },
                   child: Padding(

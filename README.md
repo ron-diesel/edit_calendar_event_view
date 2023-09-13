@@ -4,13 +4,17 @@
 
 [![pub package](https://img.shields.io/pub/v/edit_calendar_event_view.svg)](https://pub.dev/packages/edit_calendar_event_view)
 
-Opens native iOS event viewController to add or edit calendar events.
+iOS: Opens native event viewController to add or edit calendar events.
+Android: Start intent for adding or editing calendar events.
+> :warning: **Will always return ResultType.unkown for Android since the intent doesn't return a resultr**
 
-|             | iOS   |
-|-------------|-------|
-| **Support** | 11.0+ |
+|             | iOS   | Android |
+|-------------|-------|---------|
+| **Support** | 11.0+ | 16      |
 
 ![The example app running in iOS](https://github.com/chris-wolf/edit_calendar_event_view/blob/main/example/videos/edit_calendar_event_view_example.gif?raw=true)
+
+![The example app running in Android](https://github.com/chris-wolf/edit_calendar_event_view/blob/main/example/videos/edit_calendar_event_view_android_example.gif?raw=true)
 
 ## Installation
 
@@ -22,6 +26,10 @@ Add the `NSCalendarsUsageDescription` permissions to your app's _Info.plist_ fil
 in `<project root>/ios/Runner/Info.plist`. See
 [Apple's documentation](https://developer.apple.com/documentation/bundleresources/information_property_list/nsapptransportsecurity)
 to determine the right combination of entries for your use case and supported iOS versions.
+
+### Android
+
+Since events are created via intent, no steps or permissions are necessary to create new events.
 
 ##  Usage
 
@@ -69,9 +77,18 @@ class _MyAppState extends State<MyApp> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    final eventId = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle");
+                    final result = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle");
                     setState(() {
-                      this.eventId = eventId;
+                      switch(result.resultType) {
+                        case ResultType.saved:
+                          eventId = result.eventId;
+                          break;
+                        case ResultType.deleted:
+                          eventId = null;
+                          break;
+                        case ResultType.unknown:
+                          break;
+                      }
                     });
                   },
                   child: Text('Add event'),
@@ -79,9 +96,18 @@ class _MyAppState extends State<MyApp> {
                 if (eventId != null)
                 ElevatedButton(
                   onPressed: () async {
-                    final eventId = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
+                    final result = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
                     setState(() {
-                      this.eventId = eventId;
+                      switch(result.resultType) {
+                        case ResultType.saved:
+                          eventId = result.eventId;
+                          break;
+                        case ResultType.deleted:
+                          eventId = null;
+                          break;
+                        case ResultType.unknown:
+                          break;
+                      }
                     });
                   },
                   child: Padding(

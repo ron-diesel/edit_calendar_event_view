@@ -71,8 +71,7 @@ class EditCalendarEventViewPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
         intent.putExtra(CalendarContract.Events.ALL_DAY, allDay)
       }
       binding?.activity?.startActivity(intent)
-
-      result.success("sdf")
+      result.success(null)
     } else {
       result.notImplemented()
     }
