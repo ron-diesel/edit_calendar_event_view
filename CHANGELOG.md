@@ -1,3 +1,8 @@
+
+## 0.2.1+21
+
+* small readme fix
+
 ## 0.2.0+20
 
 * added Android support
