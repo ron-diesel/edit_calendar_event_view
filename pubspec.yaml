@@ -1,7 +1,8 @@
 name: edit_calendar_event_view
 description: Opens native edit calendar event view
-version: 0.1.5+10
+version: 0.2.0+20
 repository: https://github.com/chris-wolf/edit_calendar_event_view
+
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
@@ -20,9 +21,11 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
+      android:
+        package: dev.cwolf.editCalendarEventView.edit_calendar_event_view
+        pluginClass: EditCalendarEventViewPlugin
       ios:
         pluginClass: EditCalendarEventViewPlugin
-
 
 screenshots:
   - description: 'Edit event view for iOS'
