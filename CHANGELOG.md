@@ -1,3 +1,8 @@
+## 0.2.0+20
+
+* added Android support
+* added ResultType in return value
+
 ## 0.1.5+10
 
 * changed return value to "deleted" instead of null if the event got deleted
