@@ -8,13 +8,15 @@ iOS: Opens native event viewController to add or edit calendar events.
 
 Android: Start intent for adding or editing calendar events.
 
-> :warning: **Will always return ResultType.unkown for Android since the intent doesn't return a resultr**
+> :warning: **Will always return ResultType.unkown for Android since the intent doesn't return a result**
 
 |             | iOS   | Android |
 |-------------|-------|---------|
 | **Support** | 11.0+ | 16      |
 
 ![The example app running in iOS](https://github.com/chris-wolf/edit_calendar_event_view/blob/main/example/videos/edit_calendar_event_view_example.gif?raw=true)
+
+
 
 ![The example app running in Android](https://github.com/chris-wolf/edit_calendar_event_view/blob/main/example/videos/edit_calendar_event_view_android_example.gif?raw=true)
 
