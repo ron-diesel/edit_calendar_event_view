@@ -8,7 +8,8 @@ import 'edit_calendar_event_view_platform_interface.dart';
 enum ResultType {
   saved,
   deleted,
-  unknown
+  unknown,
+  canceled
 }
 
 /// An implementation of [EditCalendarEventViewPlatform] that uses method channels.
@@ -35,7 +36,9 @@ class MethodChannelEditCalendarEventView extends EditCalendarEventViewPlatform {
     if (Platform.isAndroid) { // android intent doesn't give an result so we don't know the result
       return (resultType: ResultType.unknown, eventId: null);
     } else {
-      if (result == "deleted") {
+      if (result == null) {
+        return (resultType: ResultType.canceled, eventId: null);
+      } else if (result == "deleted") {
         return (resultType: ResultType.deleted, eventId: null);
       } else {
         return (resultType: ResultType.saved, eventId: result);
