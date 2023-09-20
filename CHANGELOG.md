@@ -1,4 +1,8 @@
 
+## 0.2.5+25
+
+* changed type of dates to int
+
 ## 0.2.4+24
 
 * changed ACTION_EDIT to ACTION_VIEW in android since ACTION_EDIT didn't work properly

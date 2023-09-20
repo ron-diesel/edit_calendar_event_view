@@ -20,7 +20,7 @@ class MethodChannelEditCalendarEventView extends EditCalendarEventViewPlatform {
 
 
   @override
-  Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, DateTime? startDate, DateTime? endDate, bool?  allDay}) async {
+  Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
     final result = await methodChannel.invokeMethod<String?>(
       'addOrEditCalendarEvent',
       {
@@ -28,8 +28,8 @@ class MethodChannelEditCalendarEventView extends EditCalendarEventViewPlatform {
         'eventId': eventId,
         'title': title,
         'description': description,
-        'startDate': startDate?.millisecondsSinceEpoch,
-        'endDate': endDate?.millisecondsSinceEpoch,
+        'startDate': startDate,
+        'endDate': endDate,
         'allDay': allDay,
       },
     );

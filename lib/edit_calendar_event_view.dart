@@ -14,7 +14,7 @@ import 'edit_calendar_event_view_platform_interface.dart';
    /// [allDay] does the event last all day
    ///
    /// Returns the event ID of the newly created or edited event as a string.
-  static Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, DateTime? startDate, DateTime? endDate, bool?  allDay}) async {
+  static Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
     return EditCalendarEventViewPlatform.instance.addOrEditCalendarEvent(
       calendarId: calendarId,
       eventId: eventId,

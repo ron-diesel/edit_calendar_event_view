@@ -26,7 +26,7 @@ abstract class EditCalendarEventViewPlatform extends PlatformInterface {
 
 
   Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent(
-      {String? calendarId, String? eventId, String? title, String? description, DateTime? startDate, DateTime? endDate, bool? allDay}) async {
+      {String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool? allDay}) async {
     throw UnimplementedError('addOrEditCalendarEvent() has not been implemented.');
   }
 }
