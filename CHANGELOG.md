@@ -1,3 +1,8 @@
+
+## 0.2.4+24
+
+* changed ACTION_EDIT to ACTION_VIEW in android since ACTION_EDIT didn't work properly
+
 ## 0.2.3+23
 
 * added cancel to resultType

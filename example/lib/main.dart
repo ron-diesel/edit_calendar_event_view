@@ -45,6 +45,8 @@ class _MyAppState extends State<MyApp> {
                           break;
                         case ResultType.unknown:
                           break;
+                        case ResultType.canceled:
+                          break;
                       }
                     });
                   },
@@ -63,6 +65,8 @@ class _MyAppState extends State<MyApp> {
                           eventId = null;
                           break;
                         case ResultType.unknown:
+                          break;
+                        case ResultType.canceled:
                           break;
                       }
                     });
