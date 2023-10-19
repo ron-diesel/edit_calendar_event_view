@@ -30,8 +30,8 @@ class EditCalendarEventViewPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     if (call.method == "addOrEditCalendarEvent") {
       val args = call.arguments as Map<String, Any>
-      val calendarId = args["calendarId"] as String?
-      val eventId = args["eventId"] as String?
+      val calendarId = (args["calendarId"] as String?)?.toIntOrNull()
+      val eventId = (args["eventId"] as String?)?.toIntOrNull()
       val title = args["title"] as String?
       val description = args["description"] as String?
       val startDate = args["startDate"] as Long?
@@ -59,7 +59,7 @@ class EditCalendarEventViewPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
         intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startDate)
       }
       if (endDate != null) {
-        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, endDate)
+        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endDate)
       }
       if (title != null) {
         intent.putExtra(CalendarContract.Events.TITLE, title)

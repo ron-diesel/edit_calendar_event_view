@@ -1,4 +1,8 @@
 
+## 0.2.6+27
+
+* fixed type of calendarId and eventId for android
+
 ## 0.2.5+25
 
 * changed type of dates to int
