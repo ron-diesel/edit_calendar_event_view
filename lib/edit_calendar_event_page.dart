@@ -1,0 +1,592 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
+import 'package:edit_calendar_event_view/string_extensions.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:macos_ui/macos_ui.dart';
+import 'package:device_calendar/device_calendar.dart';
+import 'package:sprintf/sprintf.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'calendar_selection_dialog.dart';
+import 'multi_platform_dialog.dart';
+import 'multi_platform_scaffold.dart';
+
+class EditCalendarEventPage extends StatefulWidget {
+  static bool darken = false;
+
+  static Future<dynamic> show(BuildContext context,
+      {String? calendarId,
+      String? eventId,
+      String? title,
+      String? description,
+      int? startDate,
+      int? endDate,
+      bool? allDay}) async {
+    darken = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final event = eventId == null
+        ? null
+        : (await DeviceCalendarPlugin().retrieveEvents(
+                null, RetrieveEventsParams(eventIds: [eventId])))
+            .data
+            ?.firstOrNull;
+    final calendars = (await DeviceCalendarPlugin().retrieveCalendars())
+            .data
+            ?.where((element) => element.isReadOnly == false)
+            .toList() ??
+        [];
+
+    Calendar? calendar;
+
+    if (calendarId != null) {
+      calendar =
+          calendars.firstWhereOrNull((element) => element.id == calendarId);
+    }
+    if (calendar == null && event?.calendarId != null) {
+      calendar = calendars
+          .firstWhereOrNull((element) => element.id == event?.calendarId);
+    }
+    calendar ??= calendars?.firstWhereOrNull((element) =>
+        !(element.isReadOnly ?? true) && (element.isDefault ?? false));
+    calendar ??=
+        calendars?.firstWhereOrNull((element) => !(element.isReadOnly ?? true));
+    if (!context.mounted) {
+      return;
+    }
+    if (MacosTheme.maybeOf(context) != null) {
+      return MultiPlatformDialog.show(
+          context, EditCalendarEventPage(event: event),
+          barrierDismissible: true, maxWidth: 500, maxHeight: 548);
+    } else {
+      return Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => EditCalendarEventPage(
+                  event: event,
+                  calendar: calendar,
+                  title: title,
+                  description: description,
+                  startDate: startDate,
+                  endDate: endDate,
+                  allDay: allDay,
+                )),
+      );
+    }
+  }
+
+  final Event? event;
+  final Calendar? calendar;
+  final String? title;
+  final String? description;
+  final int? startDate;
+  final int? endDate;
+  final bool? allDay;
+
+  const EditCalendarEventPage(
+      {super.key,
+      this.event,
+      this.calendar,
+      this.title,
+      this.description,
+      this.startDate,
+      this.endDate,
+      this.allDay});
+
+  @override
+  _EditCalendarEventPageState createState() => _EditCalendarEventPageState();
+}
+
+class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  late Event event;
+
+  final horizontalPadding = 16.0;
+  Calendar? calendar;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.event != null) {
+      event = widget.event!;
+    } else {
+      event = Event(widget.calendar?.id,
+          start: TZDateTime.from(DateTime.now(), tz.local),
+          end: TZDateTime.from(
+              DateTime.now().add(Duration(hours: 1)), tz.local));
+    }
+    if (widget.title != null) {
+      event.title = widget.title;
+    }
+    if (widget.description != null) {
+      event.description = widget.description;
+    }
+    if (widget.allDay != null) {
+      event.allDay = widget.allDay;
+    }
+    if (widget.startDate != null) {
+      event.start = epochMillisToTZDateTime(widget.startDate!);
+    }
+    if (widget.endDate != null) {
+      event.end = epochMillisToTZDateTime(widget.endDate!);
+    }
+  }
+
+  TZDateTime epochMillisToTZDateTime(int epochMillis) {
+    // Initialize timezone data; required if you haven't done it elsewhere in your app.
+    tz.initializeTimeZones();
+    // Convert epoch milliseconds to a DateTime object.
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(epochMillis);
+    // Convert DateTime to TZDateTime in the local timezone.
+    return tz.TZDateTime.from(dateTime, tz.local);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title =
+        (widget.event == null ? 'add_local_event' : 'edit_local_event')
+            .localize(context);
+    return MultiPlatformScaffold(
+        title: title,
+        macOsLeading: MacosIconButton(
+          icon: const Icon(Icons.close, color: Color(0xff808080)),
+          onPressed: () => Navigator.pop(context),
+          padding: const EdgeInsets.all(5.0),
+        ),
+        actions: [
+          if (widget.event != null)
+            Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                ),
+                tooltip: 'delete'.localize(context),
+                onPressed: () async {
+                  await deleteEvent(context);
+                },
+              ),
+            ),
+        ],
+        macOsActions: [
+          if (widget.event != null)
+            ToolBarIconButton(
+                label: 'delete'.localize(context),
+                icon: const MacosIcon(
+                  CupertinoIcons.delete,
+                ),
+                onPressed: () {
+                  deleteEvent(context);
+                },
+                showLabel: false),
+        ],
+        body: Stack(
+          children: [
+            content(),
+            if (MacosTheme.maybeOf(context) != null)
+              Positioned(
+                right: 16.0,
+                bottom: 16.0,
+                child: PushButton(
+                  controlSize: ControlSize.large,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 5.0),
+                  child: Text('save'.localize(context)),
+                  onPressed: () {
+                    confirmPress(context);
+                  },
+                ),
+              ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          tooltip: 'save'.localize(context),
+          onPressed: () async {
+            await confirmPress(context);
+          },
+          backgroundColor: Colors.green,
+          child: const Icon(
+            Icons.check,
+            color: Colors.white,
+          ),
+        ));
+  }
+
+  Future<void> deleteEvent(BuildContext context) async {
+    final event = widget.event;
+    if (event != null) {
+      DeviceCalendarPlugin().deleteEvent(event?.calendarId, event?.eventId);
+      Navigator.pop(context, event);
+    }
+  }
+
+  static FocusNode node = FocusNode();
+  FocusNode descriptionNode = FocusNode();
+
+  DateTime startDate() {
+    return DateTime.fromMillisecondsSinceEpoch(
+        event.start?.millisecondsSinceEpoch ??
+            DateTime.now().millisecondsSinceEpoch);
+  }
+
+  DateTime endDate() {
+    return DateTime.fromMillisecondsSinceEpoch(
+        event.end?.millisecondsSinceEpoch ??
+            startDate().add(const Duration(hours: 1)).millisecondsSinceEpoch);
+  }
+
+  bool allDay() {
+    return event.allDay ?? false;
+  }
+
+  Widget content() {
+    return RawKeyboardListener(
+        onKey: (RawKeyEvent event) {
+          if (event is RawKeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.enter) {
+              if (descriptionNode.hasFocus == false) {
+                confirmPress(context);
+              }
+            }
+          }
+        },
+        focusNode: node,
+        child: Builder(builder: (context) {
+          return Container(
+            constraints: const BoxConstraints.expand(),
+            color: EditCalendarEventPage.darken ? null : Colors.grey.shade300,
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: <Widget>[
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(horizontalPadding),
+                        child: TextFormField(
+                          controller: _titleController,
+                          maxLines: 1,
+                          decoration: InputDecoration.collapsed(
+                              hintText: 'local_event_title'.localize(context),
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              border: InputBorder.none),
+                        ),
+                      ),
+                      divider(),
+                      Padding(
+                        padding: EdgeInsets.all(horizontalPadding),
+                        child: TextFormField(
+                          focusNode: descriptionNode,
+                          controller: _descriptionController,
+                          maxLines: 100,
+                          minLines: 1,
+                          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                          decoration: InputDecoration.collapsed(
+                              hintText:
+                                  'local_event_description'.localize(context),
+                              hintStyle: TextStyle(color: Colors.grey),
+                              border: InputBorder.none),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                          title: Row(
+                            children: <Widget>[
+                              Expanded(
+                                  child: Text('all_day'.localize(context))),
+                              Switch.adaptive(
+                                value: allDay(),
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    event.allDay = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            setState(() {
+                              event.allDay = !allDay();
+                            });
+                          }),
+                      divider(),
+                      ListTile(
+                        title: Row(
+                          children: [
+                            Expanded(
+                                child: Text(
+                                    'local_event_start'.localize(context))),
+                            ElevatedButton(
+                                onPressed: () async {
+                                  await setStartDate(context);
+                                },
+                                child: Text(DateFormat('EEE, MMM d, yyyy')
+                                    .format(startDate()))),
+                            if (allDay() == false)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      setStartTime(context);
+                                    },
+                                    child: Text(DateFormat('h:mm a')
+                                        .format(startDate()))),
+                              ),
+                          ],
+                        ),
+                        onTap: () async {
+                          await setStartDate(context);
+                        },
+                      ),
+                      divider(),
+                      ListTile(
+                        title: Row(
+                          children: [
+                            Expanded(
+                                child:
+                                    Text('local_event_end'.localize(context))),
+                            ElevatedButton(
+                                onPressed: () async {
+                                  await setEndDate(context);
+                                },
+                                child: Text(DateFormat('EEE, MMM d, yyyy')
+                                    .format(endDate()))),
+                            if (allDay() == false)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      setEndTime(context);
+                                    },
+                                    child: Text(DateFormat('h:mm a')
+                                        .format(endDate()))),
+                              ),
+                          ],
+                        ),
+                        onTap: () async {
+                          await setEndDate(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      divider(),
+                      ListTile(
+                        title: Text('calendar'.localize(context)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4.0),
+                              child: Container(
+                                alignment: Alignment.center,
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(calendar?.color ?? 0)),
+                              ),
+                            ),
+                            Text(calendar?.name ??
+                                'none_calendar'.localize(context)),
+                          ],
+                        ),
+                        onTap: () async {
+                          final calendars = (await DeviceCalendarPlugin()
+                                      .retrieveCalendars())
+                                  .data
+                                  ?.where(
+                                      (element) => element.isReadOnly == false)
+                                  .toList() ??
+                              [];
+                          if (!context.mounted) {
+                            return;
+                          }
+                          var result =
+                              await CalendarSelectionDialog.showCalendarDialog(
+                                  context,
+                                  'calendar'.localize(context),
+                                  null,
+                                  calendars,
+                                  calendar);
+                          if (result != null && result != calendar) {
+                            if (result.id == null) {
+                              // not set selected so reset calendar to null
+                              result = null;
+                            }
+                            setState(() {
+                              calendar = result;
+                              event.calendarId = result?.id;
+                            });
+                          }
+                        },
+                      ),
+                      divider(),
+                      for (final reminder in event.reminders ?? [])
+                        ListTile(title: Text(reminderString(reminder)),
+                        trailing: IconButton(icon: const Icon(Icons.close), onPressed: () {
+                          List<Reminder> newReminders = [...(event.reminders ?? [])];
+                          newReminders.remove(reminder);
+                          setState(() {
+                            event.reminders = newReminders;
+                          });
+
+                        },),),
+                      ListTile(title: Text('add_reminder'.localize(contex t)),
+                        trailing: IconButton(icon: const Icon(Icons.close),
+                        onPressed: () {
+                          final reminder = ;
+
+                          setState(() {
+                            event.reminders = (event.reminders ?? [])..add(reminder);
+                          });
+                        }),)
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }));
+  }
+
+  String reminderString(Reminder reminder) {
+    String resultString = "";
+    int minutes = reminder.minutes ?? 0;
+    if (minutes >= 1400) {
+      resultString = sprintf("n_days".localize(context), [minutes ~/ 1400]);
+      minutes = minutes % 1400;
+    }
+    if (minutes >= 60) {
+      resultString +=
+          " ${sprintf("n_hours".localize(context), [minutes ~/ 60])}";
+      minutes = minutes % 60;
+    }
+    if (minutes != 0) {
+      resultString +=
+          " ${sprintf("n_minutes".localize(context), [minutes ~/ 60])}";
+    }
+    return resultString.trim();
+  }
+
+  void setEndTime(BuildContext context) {
+    showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(endDate()),
+    ).then((time) {
+      if (time != null) {
+        setState(() {
+          event.end = event.end?.add(Duration(
+              hours: time.hour - endDate().hour,
+              minutes: time.minute - endDate().minute));
+          if (endDate().isBefore(startDate())) {
+            event.start = event.end;
+          }
+        });
+      }
+    });
+  }
+
+  void setStartTime(BuildContext context) {
+    showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(startDate()),
+    ).then((time) {
+      if (time != null) {
+        setState(() {
+          event.start = event.start?.add(Duration(
+              hours: time.hour - startDate().hour,
+              minutes: time.minute - startDate().minute));
+          if (startDate().isAfter(endDate())) {
+            event.end = event.start;
+          }
+        });
+      }
+    });
+  }
+
+  Future<void> setEndDate(BuildContext context) async {
+    final newDate = await showDatePicker(
+      context: context,
+      initialDate: endDate(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+      builder: (context, child) {
+        return Theme(
+            data: Theme.of(context).copyWith(useMaterial3: true),
+            child: child!);
+      },
+    );
+    if (newDate != null) {
+      setState(() {
+        event.end = epochMillisToTZDateTime(newDate.millisecondsSinceEpoch);
+        if (endDate().isBefore(startDate())) {
+          event.end = event.start;
+        }
+      });
+    }
+  }
+
+  Future<void> setStartDate(BuildContext context) async {
+    final newDate = await showDatePicker(
+      context: context,
+      initialDate: endDate(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+      builder: (context, child) {
+        return Theme(
+            data: Theme.of(context).copyWith(useMaterial3: true),
+            child: child!);
+      },
+    );
+    if (newDate != null) {
+      setState(() {
+        event.end = epochMillisToTZDateTime(newDate.millisecondsSinceEpoch);
+        if (endDate().isBefore(startDate())) {
+          event.start = event.end;
+        }
+      });
+    }
+  }
+
+  Widget divider() {
+    return Container(
+      padding: const EdgeInsets.only(left: 12),
+      height: 1,
+      width: double.infinity,
+      child: const ColoredBox(color: Colors.grey),
+    );
+  }
+
+  Future confirmPress(BuildContext context) async {
+    await DeviceCalendarPlugin().createOrUpdateEvent(event);
+    showToast(msg: 'event_saved'.localize(context));
+    Navigator.pop(context, event);
+  }
+
+  void showToast({required String msg}) {}
+}

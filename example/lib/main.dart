@@ -26,61 +26,65 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Add/Edit Event Example'),
         ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await EditCalendarEventView.addOrEditCalendarEvent(title: "exampleTitle");
-                    setState(() {
-                      switch(result.resultType) {
-                        case ResultType.saved:
-                          eventId = result.eventId;
-                          break;
-                        case ResultType.deleted:
-                          eventId = null;
-                          break;
-                        case ResultType.unknown:
-                          break;
-                        case ResultType.canceled:
-                          break;
-                      }
-                    });
-                  },
-                  child: Text('Add event'),
+        body: StatefulBuilder(
+          builder: (context,setState) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final result = await EditCalendarEventView.addOrEditCalendarEvent(context, title: "exampleTitle");
+                        setState(() {
+                          switch(result.resultType) {
+                            case ResultType.saved:
+                              eventId = result.eventId;
+                              break;
+                            case ResultType.deleted:
+                              eventId = null;
+                              break;
+                            case ResultType.unknown:
+                              break;
+                            case ResultType.canceled:
+                              break;
+                          }
+                        });
+                      },
+                      child: Text('Add event'),
+                    ),
+                    if (eventId != null)
+                    ElevatedButton(
+                      onPressed: () async {
+                        final result = await EditCalendarEventView.addOrEditCalendarEvent(context, eventId: this.eventId);
+                        setState(() {
+                          switch(result.resultType) {
+                            case ResultType.saved:
+                              eventId = result.eventId;
+                              break;
+                            case ResultType.deleted:
+                              eventId = null;
+                              break;
+                            case ResultType.unknown:
+                              break;
+                            case ResultType.canceled:
+                              break;
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text('Edit event\n$eventId',
+                        textAlign: TextAlign.center),
+                      ),
+                    ),
+                  ],
                 ),
-                if (eventId != null)
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await EditCalendarEventView.addOrEditCalendarEvent(eventId: this.eventId);
-                    setState(() {
-                      switch(result.resultType) {
-                        case ResultType.saved:
-                          eventId = result.eventId;
-                          break;
-                        case ResultType.deleted:
-                          eventId = null;
-                          break;
-                        case ResultType.unknown:
-                          break;
-                        case ResultType.canceled:
-                          break;
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Text('Edit event\n$eventId',
-                    textAlign: TextAlign.center),
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ),
+              ),
+                  );
+          }
+        ),
     ));
   }
 }

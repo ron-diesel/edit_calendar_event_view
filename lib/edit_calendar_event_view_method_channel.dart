@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:edit_calendar_event_view/edit_calendar_event_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -20,22 +22,24 @@ class MethodChannelEditCalendarEventView extends EditCalendarEventViewPlatform {
 
 
   @override
-  Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
-    final result = await methodChannel.invokeMethod<String?>(
-      'addOrEditCalendarEvent',
-      {
-        'calendarId': calendarId,
-        'eventId': eventId,
-        'title': title,
-        'description': description,
-        'startDate': startDate,
-        'endDate': endDate,
-        'allDay': allDay,
-      },
-    );
-    if (Platform.isAndroid) { // android intent doesn't give an result so we don't know the result
-      return (resultType: ResultType.unknown, eventId: null);
+  Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent(BuildContext context, {String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
+
+    if (Platform.isAndroid) {
+      final result = await EditCalendarEventPage.show(context, calendarId: calendarId, eventId: eventId, title: title, description: description, startDate: startDate, endDate: endDate, allDay: allDay);
+      return  (resultType: ResultType.unknown, eventId: null); // todo
     } else {
+      final result = await methodChannel.invokeMethod<String?>(
+        'addOrEditCalendarEvent',
+        {
+          'calendarId': calendarId,
+          'eventId': eventId,
+          'title': title,
+          'description': description,
+          'startDate': startDate,
+          'endDate': endDate,
+          'allDay': allDay,
+        },
+      );
       if (result == null) {
         return (resultType: ResultType.canceled, eventId: null);
       } else if (result == "deleted") {

@@ -1,4 +1,6 @@
 
+import 'package:flutter/cupertino.dart';
+
 import 'edit_calendar_event_view_method_channel.dart';
 import 'edit_calendar_event_view_platform_interface.dart';
 
@@ -14,8 +16,8 @@ import 'edit_calendar_event_view_platform_interface.dart';
    /// [allDay] does the event last all day
    ///
    /// Returns the event ID of the newly created or edited event as a string.
-  static Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent({String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
-    return EditCalendarEventViewPlatform.instance.addOrEditCalendarEvent(
+  static Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent(BuildContext context,{String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool?  allDay}) async {
+    return EditCalendarEventViewPlatform.instance.addOrEditCalendarEvent(context,
       calendarId: calendarId,
       eventId: eventId,
       title: title,

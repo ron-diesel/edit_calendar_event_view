@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'edit_calendar_event_view_method_channel.dart';
@@ -23,10 +24,8 @@ abstract class EditCalendarEventViewPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-
-
   Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent(
-      {String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool? allDay}) async {
+      BuildContext context, {String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool? allDay}) async {
     throw UnimplementedError('addOrEditCalendarEvent() has not been implemented.');
   }
 }

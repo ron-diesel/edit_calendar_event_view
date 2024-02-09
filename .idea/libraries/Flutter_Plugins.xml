@@ -2,6 +2,10 @@
   <library name="Flutter Plugins" type="FlutterPluginsLibraryType">
     <CLASSES>
       <root url="file://$PROJECT_DIR$" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/appkit_ui_element_colors-1.0.0" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/device_calendar-4.3.2" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/macos_window_utils-1.4.0" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/macos_ui-2.0.5" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
