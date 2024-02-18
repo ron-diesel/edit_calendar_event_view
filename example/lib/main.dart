@@ -52,12 +52,12 @@ class _MyAppState extends State<MyApp> {
                           }
                         });
                       },
-                      child: Text('Add event'),
+                      child: const Text('Add event'),
                     ),
                     if (eventId != null)
                     ElevatedButton(
                       onPressed: () async {
-                        final result = await EditCalendarEventView.addOrEditCalendarEvent(context, eventId: this.eventId);
+                        final result = await EditCalendarEventView.addOrEditCalendarEvent(context, eventId: eventId);
                         setState(() {
                           switch(result.resultType) {
                             case ResultType.saved:

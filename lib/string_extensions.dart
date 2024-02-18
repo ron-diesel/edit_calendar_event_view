@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 
 import 'edit_event_localization.dart';
 

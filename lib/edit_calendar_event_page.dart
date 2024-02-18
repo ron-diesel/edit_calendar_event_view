@@ -63,7 +63,7 @@ class EditCalendarEventPage extends StatefulWidget {
     calendar ??= calendars.firstWhereOrNull((element) =>
         !(element.isReadOnly ?? true) && (element.isDefault ?? false));
     calendar ??=
-        calendars?.firstWhereOrNull((element) => !(element.isReadOnly ?? true));
+        calendars.firstWhereOrNull((element) => !(element.isReadOnly ?? true));
     if (!context.mounted) {
       return;
     }
@@ -130,7 +130,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
       event = Event(widget.calendar?.id,
           start: TZDateTime.from(DateTime.now(), tz.local),
           end: TZDateTime.from(
-              DateTime.now().add(Duration(hours: 1)), tz.local));
+              DateTime.now().add(const Duration(hours: 1)), tz.local));
     }
     if (widget.title != null) {
       event.title = widget.title;
@@ -178,7 +178,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
         actions: [
           if (widget.event != null)
             Padding(
-              padding: EdgeInsets.only(right: 20.0),
+              padding: const EdgeInsets.only(right: 20.0),
               child: IconButton(
                 icon: const Icon(
                   Icons.delete,
@@ -308,7 +308,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                           decoration: InputDecoration.collapsed(
                               hintText:
                                   'event_description'.localize(),
-                              hintStyle: TextStyle(color: Colors.grey),
+                              hintStyle: const TextStyle(color: Colors.grey),
                               border: InputBorder.none),
                         ),
                       )
@@ -324,7 +324,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ListTile(
-                              leading: Icon(Icons.access_time_rounded),
+                              leading: const Icon(Icons.access_time_rounded),
                                 title: Row(
                                   children: <Widget>[
                                     Expanded(
@@ -412,8 +412,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                               title: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Expanded(
-                                    child: const Align(
+                                  const Expanded(
+                                    child: Align(
                                         alignment: Alignment.centerLeft,
                                         child: Icon(Icons.calendar_month)),
                                   ),
@@ -667,7 +667,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
       lastDate: DateTime.now().add(const Duration(days: 3650)),
       builder: (context, child) {
         return Theme(
-            data: Theme.of(context).copyWith(useMaterial3: true),
+            data: Theme.of(context).copyWith(),
             child: child!);
       },
     );
@@ -689,7 +689,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
       lastDate: DateTime.now().add(const Duration(days: 3650)),
       builder: (context, child) {
         return Theme(
-            data: Theme.of(context).copyWith(useMaterial3: true),
+            data: Theme.of(context).copyWith(),
             child: child!);
       },
     );

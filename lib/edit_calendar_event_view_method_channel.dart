@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:edit_calendar_event_view/edit_calendar_event_page.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'edit_calendar_event_view_platform_interface.dart';
