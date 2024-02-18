@@ -9,6 +9,7 @@ environment:
   flutter: ">=2.5.0"
 
 dependencies:
+  collection: ^1.18.0
   device_calendar: ^4.3.2
   flutter:
     sdk: flutter

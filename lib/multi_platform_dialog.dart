@@ -142,7 +142,7 @@ class MultiPlatformDialog {
             barrierDismissible: barrierDismissible,
             barrierColor: barrierColor ?? Colors.black54,
             transitionDuration: const Duration(milliseconds: 150),
-            barrierLabel: 'close'.localize(context),
+            barrierLabel: 'close'.localize(),
             transitionBuilder: (context, animation, secondaryAnimation, child) {
               final begin = animateFrom;
               const end = Offset.zero;

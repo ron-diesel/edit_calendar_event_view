@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macos_ui/macos_ui.dart';
 
-import 'common.dart';
+import 'common/common.dart';
 
 class MultiPlatformScaffold extends StatelessWidget {
   final String? title;

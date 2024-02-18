@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
+import 'edit_event_localization.dart';
+
 extension StringExtensions on String {
-  String localize(BuildContext context) {
-    return this; //todo //AppLocalizations.of(context).localize(this);
+  String localize() {
+    return EditEventLocalization.localize(this);
   }
 }
 

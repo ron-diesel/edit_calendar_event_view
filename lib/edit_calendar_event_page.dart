@@ -12,11 +12,11 @@ import 'package:sprintf/sprintf.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'calendar_selection_dialog.dart';
+import 'edit_calendar_event_view_method_channel.dart';
 import 'multi_platform_dialog.dart';
 import 'multi_platform_scaffold.dart';
 
 class EditCalendarEventPage extends StatefulWidget {
-  static bool darken = false;
 
   static Future<dynamic> show(BuildContext context,
       {String? calendarId,
@@ -26,18 +26,29 @@ class EditCalendarEventPage extends StatefulWidget {
       int? startDate,
       int? endDate,
       bool? allDay}) async {
-    darken = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    final event = eventId == null
-        ? null
-        : (await DeviceCalendarPlugin().retrieveEvents(
-                null, RetrieveEventsParams(eventIds: [eventId])))
-            .data
-            ?.firstOrNull;
-    final calendars = (await DeviceCalendarPlugin().retrieveCalendars())
-            .data
-            ?.where((element) => element.isReadOnly == false)
-            .toList() ??
-        [];
+
+    List<Calendar> calendars = (await DeviceCalendarPlugin().retrieveCalendars())
+        .data?.toList() ?? [];
+    Event? event;
+    if (eventId != null) {
+      if (calendarId != null) {
+        event = (await DeviceCalendarPlugin().retrieveEvents(
+            calendarId, RetrieveEventsParams(eventIds: [eventId]))).data?.firstOrNull;
+      }
+      if (event == null) {
+        for (final cal in calendars) {
+          final events = await DeviceCalendarPlugin().retrieveEvents(
+              cal.id, RetrieveEventsParams(eventIds: [eventId]));
+          final evnt = events.data?.firstOrNull;
+          if (evnt != null) {
+            event = evnt;
+            break;
+          }
+        }
+      }
+    }
+    calendars = calendars.where((element) => element.isReadOnly == false)
+            .toList();
 
     Calendar? calendar;
 
@@ -49,30 +60,31 @@ class EditCalendarEventPage extends StatefulWidget {
       calendar = calendars
           .firstWhereOrNull((element) => element.id == event?.calendarId);
     }
-    calendar ??= calendars?.firstWhereOrNull((element) =>
+    calendar ??= calendars.firstWhereOrNull((element) =>
         !(element.isReadOnly ?? true) && (element.isDefault ?? false));
     calendar ??=
         calendars?.firstWhereOrNull((element) => !(element.isReadOnly ?? true));
     if (!context.mounted) {
       return;
     }
+    final page = EditCalendarEventPage(
+      event: event,
+      calendar: calendar,
+      title: title,
+      description: description,
+      startDate: startDate,
+      endDate: endDate,
+      allDay: allDay,
+    );
     if (MacosTheme.maybeOf(context) != null) {
       return MultiPlatformDialog.show(
-          context, EditCalendarEventPage(event: event),
+          context, page,
           barrierDismissible: true, maxWidth: 500, maxHeight: 548);
     } else {
       return Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => EditCalendarEventPage(
-                  event: event,
-                  calendar: calendar,
-                  title: title,
-                  description: description,
-                  startDate: startDate,
-                  endDate: endDate,
-                  allDay: allDay,
-                )),
+            builder: (context) => page),
       );
     }
   }
@@ -111,6 +123,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   @override
   void initState() {
     super.initState();
+    calendar = widget.calendar;
     if (widget.event != null) {
       event = widget.event!;
     } else {
@@ -134,6 +147,11 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
     if (widget.endDate != null) {
       event.end = epochMillisToTZDateTime(widget.endDate!);
     }
+    if (calendar != null) {
+      event.calendarId = calendar?.id;
+    }
+    _titleController.text = event.title ?? '';
+    _descriptionController.text = event.description ?? '';
   }
 
   TZDateTime epochMillisToTZDateTime(int epochMillis) {
@@ -148,8 +166,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   @override
   Widget build(BuildContext context) {
     final title =
-        (widget.event == null ? 'add_local_event' : 'edit_local_event')
-            .localize(context);
+        (widget.event == null ? 'add_event' : 'edit_event')
+            .localize();
     return MultiPlatformScaffold(
         title: title,
         macOsLeading: MacosIconButton(
@@ -165,7 +183,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                 icon: const Icon(
                   Icons.delete,
                 ),
-                tooltip: 'delete'.localize(context),
+                tooltip: 'delete'.localize(),
                 onPressed: () async {
                   await deleteEvent(context);
                 },
@@ -175,7 +193,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
         macOsActions: [
           if (widget.event != null)
             ToolBarIconButton(
-                label: 'delete'.localize(context),
+                label: 'delete'.localize(),
                 icon: const MacosIcon(
                   CupertinoIcons.delete,
                 ),
@@ -195,7 +213,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                   controlSize: ControlSize.large,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20.0, vertical: 5.0),
-                  child: Text('save'.localize(context)),
+                  child: Text('save'.localize()),
                   onPressed: () {
                     confirmPress(context);
                   },
@@ -204,7 +222,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          tooltip: 'save'.localize(context),
+          tooltip: 'save'.localize(),
           onPressed: () async {
             await confirmPress(context);
           },
@@ -219,8 +237,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   Future<void> deleteEvent(BuildContext context) async {
     final event = widget.event;
     if (event != null) {
-      DeviceCalendarPlugin().deleteEvent(event?.calendarId, event?.eventId);
-      Navigator.pop(context, event);
+      DeviceCalendarPlugin().deleteEvent(event.calendarId, event.eventId);
+      Navigator.pop(context, (resultType: ResultType.deleted, eventId: event.eventId));
     }
   }
 
@@ -258,12 +276,10 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
         child: Builder(builder: (context) {
           return Container(
             constraints: const BoxConstraints.expand(),
-            color: EditCalendarEventPage.darken ? null : Colors.grey.shade300,
             child: ListView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
               children: <Widget>[
                 Card(
-                  margin: EdgeInsets.zero,
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
                   child: Column(
@@ -275,7 +291,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                           controller: _titleController,
                           maxLines: 1,
                           decoration: InputDecoration.collapsed(
-                              hintText: 'local_event_title'.localize(context),
+                              hintText: 'event_title'.localize(),
                               hintStyle: const TextStyle(color: Colors.grey),
                               border: InputBorder.none),
                         ),
@@ -291,7 +307,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
                           decoration: InputDecoration.collapsed(
                               hintText:
-                                  'local_event_description'.localize(context),
+                                  'event_description'.localize(),
                               hintStyle: TextStyle(color: Colors.grey),
                               border: InputBorder.none),
                         ),
@@ -300,171 +316,290 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                   ),
                 ),
                 Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
+
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                          title: Row(
-                            children: <Widget>[
-                              Expanded(
-                                  child: Text('all_day'.localize(context))),
-                              Switch.adaptive(
-                                value: allDay(),
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    event.allDay = value;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          onTap: () {
-                            setState(() {
-                              event.allDay = !allDay();
-                            });
-                          }),
-                      divider(),
-                      ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                                child: Text(
-                                    'local_event_start'.localize(context))),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  await setStartDate(context);
-                                },
-                                child: Text(DateFormat('EEE, MMM d, yyyy')
-                                    .format(startDate()))),
-                            if (allDay() == false)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: ElevatedButton(
-                                    onPressed: () {
-                                      setStartTime(context);
-                                    },
-                                    child: Text(DateFormat('h:mm a')
-                                        .format(startDate()))),
-                              ),
-                          ],
-                        ),
-                        onTap: () async {
-                          await setStartDate(context);
-                        },
-                      ),
-                      divider(),
-                      ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                                child:
-                                    Text('local_event_end'.localize(context))),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  await setEndDate(context);
-                                },
-                                child: Text(DateFormat('EEE, MMM d, yyyy')
-                                    .format(endDate()))),
-                            if (allDay() == false)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: ElevatedButton(
-                                    onPressed: () {
-                                      setEndTime(context);
-                                    },
-                                    child: Text(DateFormat('h:mm a')
-                                        .format(endDate()))),
-                              ),
-                          ],
-                        ),
-                        onTap: () async {
-                          await setEndDate(context);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      divider(),
-                      ListTile(
-                        title: Text('calendar'.localize(context)),
-                        trailing: Row(
+                  child:
+                      Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4.0),
-                              child: Container(
-                                alignment: Alignment.center,
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(calendar?.color ?? 0)),
+                            ListTile(
+                              leading: Icon(Icons.access_time_rounded),
+                                title: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                        child: Text('all_day'.localize())),
+                                    Switch.adaptive(
+                                      value: allDay(),
+                                      onChanged: (bool value) {
+                                        setState(() {
+                                          event.allDay = value;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    event.allDay = !allDay();
+                                  });
+                                }),
+                            ListTile(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  ElevatedButton(
+                                      onPressed: () async {
+                                        await setStartDate(context);
+                                      },
+                                      child: Text(DateFormat('EEE, MMM d, yyyy')
+                                          .format(startDate()))),
+                                  if (allDay() == false)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 16.0),
+                                      child: ElevatedButton(
+                                          onPressed: () {
+                                            setStartTime(context);
+                                          },
+                                          child: Text(DateFormat('h:mm a')
+                                              .format(startDate()))),
+                                    ),
+                                ],
                               ),
+                              onTap: () async {
+                                await setStartDate(context);
+                              },
                             ),
-                            Text(calendar?.name ??
-                                'none_calendar'.localize(context)),
+                            ListTile(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  ElevatedButton(
+                                      onPressed: () async {
+                                        await setEndDate(context);
+                                      },
+                                      child: Text(DateFormat('EEE, MMM d, yyyy')
+                                          .format(endDate()))),
+                                  if (allDay() == false)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 16.0),
+                                      child: ElevatedButton(
+                                          onPressed: () {
+                                            setEndTime(context);
+                                          },
+                                          child: Text(DateFormat('h:mm a')
+                                              .format(endDate()))),
+                                    ),
+                                ],
+                              ),
+                              onTap: () async {
+                                await setEndDate(context);
+                              },
+                            ),
                           ],
                         ),
-                        onTap: () async {
-                          final calendars = (await DeviceCalendarPlugin()
-                                      .retrieveCalendars())
-                                  .data
-                                  ?.where(
-                                      (element) => element.isReadOnly == false)
-                                  .toList() ??
-                              [];
-                          if (!context.mounted) {
-                            return;
-                          }
-                          var result =
-                              await CalendarSelectionDialog.showCalendarDialog(
-                                  context,
-                                  'calendar'.localize(context),
-                                  null,
-                                  calendars,
-                                  calendar);
-                          if (result != null && result != calendar) {
-                            if (result.id == null) {
-                              // not set selected so reset calendar to null
-                              result = null;
-                            }
-                            setState(() {
-                              calendar = result;
-                              event.calendarId = result?.id;
-                            });
-                          }
-                        },
+                ),
+                Card(
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ListTile(
+                              title: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Expanded(
+                                    child: const Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Icon(Icons.calendar_month)),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4.0),
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(calendar?.color ?? 0)),
+                                    ),
+                                  ),
+                                  Text(calendar?.name ??
+                                      'no_calendar'.localize()),
+                                ],
+                              ),
+                              onTap: () async {
+                                final calendars = (await DeviceCalendarPlugin()
+                                            .retrieveCalendars())
+                                        .data
+                                        ?.where(
+                                            (element) => element.isReadOnly == false)
+                                        .toList() ??
+                                    [];
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                var result =
+                                    await CalendarSelectionDialog.showCalendarDialog(
+                                        context,
+                                        'calendar'.localize(),
+                                        null,
+                                        calendars,
+                                        calendars.firstWhereOrNull((element) => element.id == calendar?.id));
+                                if (result?.id != null ) {
+                                  setState(() {
+                                    calendar = result;
+                                    event.calendarId = result?.id;
+                                  });
+                                  }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       divider(),
-                      for (final reminder in event.reminders ?? [])
-                        ListTile(title: Text(reminderString(reminder)),
-                        trailing: IconButton(icon: const Icon(Icons.close), onPressed: () {
-                          List<Reminder> newReminders = [...(event.reminders ?? [])];
-                          newReminders.remove(reminder);
-                          setState(() {
-                            event.reminders = newReminders;
-                          });
 
-                        },),),
-                      ListTile(title: Text('add_reminder'.localize(contex t)),
-                        trailing: IconButton(icon: const Icon(Icons.close),
-                        onPressed: () {
-                          final reminder = ;
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16,16,0,20),
+                          child: Icon(Icons.alarm),
+                        ),
+                        Expanded(
+                          child: Column(children: [
+                            for (final reminder in event.reminders ?? [])
+                              ListTile(
+                                title: Text(reminderString(reminder)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    List<Reminder> newReminders = [
+                                      ...(event.reminders ?? [])
+                                    ];
+                                    newReminders.remove(reminder);
+                                    setState(() {
+                                      event.reminders = newReminders;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ListTile(
+                              title: Text('add_reminder'.localize()),
+                              onTap: () async {
+                                Reminder? reminder = (await showDialog<Reminder>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return SimpleDialog(
+                                        children: <Widget>[
+                                          for (final reminder in defaultAlarmOptions
+                                              .map((mins) => Reminder(minutes: mins))
+                                              .where((element) =>
+                                          event.reminders?.none((p0) =>
+                                          p0.minutes ==
+                                              element.minutes) ??
+                                              true))
+                                            SimpleDialogOption(
+                                              onPressed: () {
+                                                Navigator.pop(context, reminder);
+                                              },
+                                              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                                              child: Text(reminderString(reminder)),
+                                            ),
+                                          SimpleDialogOption(
+                                            onPressed: () {
+                                              Navigator.pop(context, Reminder(minutes: 0));
+                                            },
+                                            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                                            child: Text(
+                                                'custom_reminder'.localize()),
+                                          ),
+                                        ],
+                                      );
+                                    }));
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                if (reminder?.minutes == 0) {
+                                  reminder = reminder = (await showDialog<Reminder>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      TextEditingController numberController =
+                                      TextEditingController(text: '10');
+                                      int currentIndex = 0;
+                                      return AlertDialog(
+                                        title:
+                                        Text('custom_reminder'.localize()),
+                                        content: StatefulBuilder(
+                                          builder: (BuildContext context,
+                                              void Function(void Function())
+                                              setState) {
+                                            return Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextField(
+                                                  controller: numberController,
+                                                  keyboardType: TextInputType.number,
+                                                ),
+                                                for (final timeUnit
+                                                in TimeUnit.values)
+                                                  RadioListTile(
+                                                    title: Text(
+                                                        sprintf(
+                                                            'n_before'.localize(),
+                                                            [
+                                                              sprintf(
+                                                                  "n_${timeUnit.name}"
+                                                                      .localize(),
+                                                                  [0])
+                                                            ])
+                                                            .replaceAll('0', '')
+                                                            .trim()),
+                                                    value: TimeUnit.values
+                                                        .indexOf(timeUnit),
+                                                    groupValue: currentIndex,
+                                                    onChanged: (int? value) {
+                                                      setState(() =>
+                                                      currentIndex = value ?? 0);
+                                                    },
+                                                  ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('confirm'.localize()),
+                                            onPressed: () {
+                                              int number = int.tryParse(
+                                                  numberController.text) ??
+                                                  0;
+                                              Navigator.of(context).pop(Reminder(
+                                                  minutes: number *
+                                                      TimeUnit.values[currentIndex].inMinutes()));
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ));
+                                }
+                                if (reminder != null) {
+                                  setState(() {
+                                    event.reminders = (event.reminders ?? [])
+                                      ..add(reminder!);
+                                  });
+                                }
+                              },
+                            ),
+                          ],),
+                        )
+                      ],)
 
-                          setState(() {
-                            event.reminders = (event.reminders ?? [])..add(reminder);
-                          });
-                        }),)
                     ],
                   ),
                 ),
@@ -477,20 +612,15 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   String reminderString(Reminder reminder) {
     String resultString = "";
     int minutes = reminder.minutes ?? 0;
-    if (minutes >= 1400) {
-      resultString = sprintf("n_days".localize(context), [minutes ~/ 1400]);
-      minutes = minutes % 1400;
+    for (final timeUnit in TimeUnit.values.reversed) {
+      final timeUnitMinutes = timeUnit.inMinutes();
+      if (minutes >= timeUnitMinutes) {
+        resultString += sprintf("n_${timeUnit.name}".localize(),
+            [minutes ~/ timeUnitMinutes]);
+        minutes = minutes % timeUnitMinutes;
+      }
     }
-    if (minutes >= 60) {
-      resultString +=
-          " ${sprintf("n_hours".localize(context), [minutes ~/ 60])}";
-      minutes = minutes % 60;
-    }
-    if (minutes != 0) {
-      resultString +=
-          " ${sprintf("n_minutes".localize(context), [minutes ~/ 60])}";
-    }
-    return resultString.trim();
+    return sprintf('n_before'.localize(), [resultString.trim()]);
   }
 
   void setEndTime(BuildContext context) {
@@ -578,15 +708,44 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
       padding: const EdgeInsets.only(left: 12),
       height: 1,
       width: double.infinity,
-      child: const ColoredBox(color: Colors.grey),
+      child:  ColoredBox(color: Colors.grey.shade300),
     );
   }
 
   Future confirmPress(BuildContext context) async {
-    await DeviceCalendarPlugin().createOrUpdateEvent(event);
-    showToast(msg: 'event_saved'.localize(context));
-    Navigator.pop(context, event);
+    event.title = _titleController.text;
+    event.description = _descriptionController.text;
+    final eventId = await DeviceCalendarPlugin().createOrUpdateEvent(event);
+    if (context.mounted) {
+      Navigator.pop(context, (resultType: ResultType.saved, eventId: eventId?.data));
+    }
   }
 
-  void showToast({required String msg}) {}
+
+  static const defaultAlarmOptions = [
+    30,
+    1 * 60,
+    3 * 60,
+    12 * 60,
+    24 * 60,
+    48 * 60,
+    7 * 24 * 60
+  ];
+}
+
+enum TimeUnit { minutes, hours, days, weeks }
+
+extension TimeUnitExtension on TimeUnit {
+  int inMinutes() {
+    switch (this) {
+      case TimeUnit.minutes:
+        return 1;
+      case TimeUnit.hours:
+        return 60; // 60 minutes in an hour
+      case TimeUnit.days:
+        return 1440; // 24 hours * 60 minutes
+      case TimeUnit.weeks:
+        return 10080; // 7 days * 24 hours * 60 minutes
+    }
+  }
 }
