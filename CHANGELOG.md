@@ -1,3 +1,6 @@
+## 0.3.0+30
+
+* changed android from intent calling to custom flutter page since intent was not reliable**
 
 ## 0.2.6+27
 

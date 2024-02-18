@@ -6,9 +6,7 @@
 
 iOS: Opens native event viewController to add or edit calendar events.
 
-Android: Start intent for adding or editing calendar events.
-
-> :warning: **Will always return ResultType.unkown for Android since the intent doesn't return a result**
+Android: Open flutter page for calendar events (intent wasn't reliable).
 
 |             | iOS   | Android |
 |-------------|-------|---------|
@@ -33,7 +31,13 @@ to determine the right combination of entries for your use case and supported iO
 
 ### Android
 
-Since events are created via intent, no steps or permissions are necessary to create new events.
+Add these permission to your AndroidManifest.xml:
+```
+    ...
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+</manifest>
+```
 
 ##  Usage
 
