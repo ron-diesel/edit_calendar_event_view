@@ -1,4 +1,4 @@
-## 0.3.0+30
+## 0.3.1+31
 
 * fixed time issues and adjusted layout a bit
 
