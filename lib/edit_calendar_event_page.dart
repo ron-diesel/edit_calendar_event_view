@@ -5,6 +5,7 @@ import 'package:edit_calendar_event_view/string_extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:device_calendar/device_calendar.dart';
@@ -18,6 +19,9 @@ import 'multi_platform_scaffold.dart';
 
 class EditCalendarEventPage extends StatefulWidget {
 
+
+  static String? currentTimeZone;
+
   static Future<dynamic> show(BuildContext context,
       {String? calendarId,
       String? eventId,
@@ -26,7 +30,10 @@ class EditCalendarEventPage extends StatefulWidget {
       int? startDate,
       int? endDate,
       bool? allDay}) async {
-
+    if (EditCalendarEventPage.currentTimeZone == null) {
+      tz.initializeTimeZones();
+      currentTimeZone= await FlutterTimezone.getLocalTimezone();
+    }
     List<Calendar> calendars = (await DeviceCalendarPlugin().retrieveCalendars())
         .data?.toList() ?? [];
     Event? event;
@@ -121,8 +128,11 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   Calendar? calendar;
 
   @override
-  void initState() {
+  void initState()  {
     super.initState();
+    print(tz.local);
+    tz.setLocalLocation(tz.getLocation(EditCalendarEventPage.currentTimeZone ?? 'UTC'));
+    print(tz.local);
     calendar = widget.calendar;
     if (widget.event != null) {
       event = widget.event!;
@@ -156,15 +166,16 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
 
   TZDateTime epochMillisToTZDateTime(int epochMillis) {
     // Initialize timezone data; required if you haven't done it elsewhere in your app.
-    tz.initializeTimeZones();
     // Convert epoch milliseconds to a DateTime object.
     final dateTime = DateTime.fromMillisecondsSinceEpoch(epochMillis);
     // Convert DateTime to TZDateTime in the local timezone.
     return tz.TZDateTime.from(dateTime, tz.local);
   }
 
+  Color? buttonTextColor;
   @override
   Widget build(BuildContext context) {
+    buttonTextColor ??= Theme.of(context).primaryColor;
     final title =
         (widget.event == null ? 'add_event' : 'edit_event')
             .localize();
@@ -316,7 +327,6 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                   ),
                 ),
                 Card(
-
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
                   child:
@@ -346,24 +356,24 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                                 }),
                             ListTile(
                               title: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  ElevatedButton(
+                                  const SizedBox(width: 26),
+                                  TextButton(
                                       onPressed: () async {
                                         await setStartDate(context);
                                       },
                                       child: Text(DateFormat('EEE, MMM d, yyyy')
-                                          .format(startDate()))),
+                                          .format(startDate()),
+                                          style: const TextStyle(fontSize: 16))),
+                                  const Expanded(child: SizedBox(),),
                                   if (allDay() == false)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 16.0),
-                                      child: ElevatedButton(
+                                    TextButton(
                                           onPressed: () {
                                             setStartTime(context);
                                           },
                                           child: Text(DateFormat('h:mm a')
-                                              .format(startDate()))),
-                                    ),
+                                              .format(startDate()),
+                                              style: const TextStyle(fontSize: 16))),
                                 ],
                               ),
                               onTap: () async {
@@ -372,23 +382,24 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                             ),
                             ListTile(
                               title: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  ElevatedButton(
+                                  const SizedBox(width: 26),
+                                  TextButton(
                                       onPressed: () async {
                                         await setEndDate(context);
                                       },
                                       child: Text(DateFormat('EEE, MMM d, yyyy')
-                                          .format(endDate()))),
+                                          .format(endDate()),
+                                      style: const TextStyle(fontSize: 16))),
+                                  const Expanded(child: SizedBox(),),
                                   if (allDay() == false)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 16.0),
-                                      child: ElevatedButton(
+                                    TextButton(
                                           onPressed: () {
                                             setEndTime(context);
                                           },
                                           child: Text(DateFormat('h:mm a')
-                                              .format(endDate()))),
+                                              .format(endDate()),
+                                              style: const TextStyle(fontSize: 16)),
                                     ),
                                 ],
                               ),
@@ -476,7 +487,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                               ListTile(
                                 title: Text(reminderString(reminder)),
                                 trailing: IconButton(
-                                  icon: const Icon(Icons.close),
+                                  icon:  Icon(Icons.close_rounded, color: buttonTextColor,),
                                   onPressed: () {
                                     List<Reminder> newReminders = [
                                       ...(event.reminders ?? [])
@@ -489,111 +500,11 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                                 ),
                               ),
                             ListTile(
-                              title: Text('add_reminder'.localize()),
+                              title: Text('add_reminder'.localize(),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: buttonTextColor),
+                              ),
                               onTap: () async {
-                                Reminder? reminder = (await showDialog<Reminder>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return SimpleDialog(
-                                        children: <Widget>[
-                                          for (final reminder in defaultAlarmOptions
-                                              .map((mins) => Reminder(minutes: mins))
-                                              .where((element) =>
-                                          event.reminders?.none((p0) =>
-                                          p0.minutes ==
-                                              element.minutes) ??
-                                              true))
-                                            SimpleDialogOption(
-                                              onPressed: () {
-                                                Navigator.pop(context, reminder);
-                                              },
-                                              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                                              child: Text(reminderString(reminder)),
-                                            ),
-                                          SimpleDialogOption(
-                                            onPressed: () {
-                                              Navigator.pop(context, Reminder(minutes: 0));
-                                            },
-                                            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                                            child: Text(
-                                                'custom_reminder'.localize()),
-                                          ),
-                                        ],
-                                      );
-                                    }));
-                                if (!context.mounted) {
-                                  return;
-                                }
-                                if (reminder?.minutes == 0) {
-                                  reminder = reminder = (await showDialog<Reminder>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      TextEditingController numberController =
-                                      TextEditingController(text: '10');
-                                      int currentIndex = 0;
-                                      return AlertDialog(
-                                        title:
-                                        Text('custom_reminder'.localize()),
-                                        content: StatefulBuilder(
-                                          builder: (BuildContext context,
-                                              void Function(void Function())
-                                              setState) {
-                                            return Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                TextField(
-                                                  controller: numberController,
-                                                  keyboardType: TextInputType.number,
-                                                ),
-                                                for (final timeUnit
-                                                in TimeUnit.values)
-                                                  RadioListTile(
-                                                    title: Text(
-                                                        sprintf(
-                                                            'n_before'.localize(),
-                                                            [
-                                                              sprintf(
-                                                                  "n_${timeUnit.name}"
-                                                                      .localize(),
-                                                                  [0])
-                                                            ])
-                                                            .replaceAll('0', '')
-                                                            .trim()),
-                                                    value: TimeUnit.values
-                                                        .indexOf(timeUnit),
-                                                    groupValue: currentIndex,
-                                                    onChanged: (int? value) {
-                                                      setState(() =>
-                                                      currentIndex = value ?? 0);
-                                                    },
-                                                  ),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('confirm'.localize()),
-                                            onPressed: () {
-                                              int number = int.tryParse(
-                                                  numberController.text) ??
-                                                  0;
-                                              Navigator.of(context).pop(Reminder(
-                                                  minutes: number *
-                                                      TimeUnit.values[currentIndex].inMinutes()));
-                                            },
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ));
-                                }
-                                if (reminder != null) {
-                                  setState(() {
-                                    event.reminders = (event.reminders ?? [])
-                                      ..add(reminder!);
-                                  });
-                                }
+                                addReminder();
                               },
                             ),
                           ],),
@@ -607,6 +518,114 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
             ),
           );
         }));
+  }
+
+
+  void addReminder() async {
+
+    Reminder? reminder = (await showDialog<Reminder>(
+    context: context,
+    builder: (BuildContext context) {
+      return SimpleDialog(
+        children: <Widget>[
+          for (final reminder in defaultAlarmOptions
+              .map((mins) => Reminder(minutes: mins))
+              .where((element) =>
+          event.reminders?.none((p0) =>
+          p0.minutes ==
+              element.minutes) ??
+              true))
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, reminder);
+              },
+              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+              child: Text(reminderString(reminder)),
+            ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context, Reminder(minutes: 0));
+            },
+            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+            child: Text(
+                'custom_reminder'.localize()),
+          ),
+        ],
+      );
+    }));
+    if (!context.mounted) {
+    return;
+    }
+    if (reminder?.minutes == 0) {
+    reminder = reminder = (await showDialog<Reminder>(
+    context: context,
+    builder: (BuildContext context) {
+    TextEditingController numberController =
+    TextEditingController(text: '10');
+    int currentIndex = 0;
+    return AlertDialog(
+    title:
+    Text('custom_reminder'.localize()),
+    content: StatefulBuilder(
+    builder: (BuildContext context,
+    void Function(void Function())
+    setState) {
+    return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+    TextField(
+    controller: numberController,
+    keyboardType: TextInputType.number,
+    ),
+    for (final timeUnit
+    in TimeUnit.values)
+    RadioListTile(
+    title: Text(
+    sprintf(
+    'n_before'.localize(),
+    [
+    sprintf(
+    "n_${timeUnit.name}"
+        .localize(),
+    [0])
+    ])
+        .replaceAll('0', '')
+        .trim()),
+    value: TimeUnit.values
+        .indexOf(timeUnit),
+    groupValue: currentIndex,
+    onChanged: (int? value) {
+    setState(() =>
+    currentIndex = value ?? 0);
+    },
+    ),
+    ],
+    );
+    },
+    ),
+    actions: <Widget>[
+    TextButton(
+    child: Text('confirm'.localize()),
+    onPressed: () {
+    int number = int.tryParse(
+    numberController.text) ??
+    0;
+    Navigator.of(context).pop(Reminder(
+    minutes: number *
+    TimeUnit.values[currentIndex].inMinutes()));
+    },
+    ),
+    ],
+    );
+    },
+    ));
+    }
+    if (reminder != null) {
+    setState(() {
+    event.reminders = (event.reminders ?? [])
+    ..add(reminder!);
+    });
+    }
   }
 
   String reminderString(Reminder reminder) {
@@ -634,7 +653,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
               hours: time.hour - endDate().hour,
               minutes: time.minute - endDate().minute));
           if (endDate().isBefore(startDate())) {
-            event.start = event.end;
+            event.start = event.end?.subtract(Duration(hours: 1));
           }
         });
       }
@@ -652,7 +671,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
               hours: time.hour - startDate().hour,
               minutes: time.minute - startDate().minute));
           if (startDate().isAfter(endDate())) {
-            event.end = event.start;
+            event.end = event.start?.add(const Duration(hours: 1));
           }
         });
       }
@@ -660,6 +679,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
   }
 
   Future<void> setEndDate(BuildContext context) async {
+    final hour = event.end?.hour;
+    final minutes = event.end?.minute;
     final newDate = await showDatePicker(
       context: context,
       initialDate: endDate(),
@@ -673,15 +694,18 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
     );
     if (newDate != null) {
       setState(() {
-        event.end = epochMillisToTZDateTime(newDate.millisecondsSinceEpoch);
+        event.end = epochMillisToTZDateTime(newDate.add(Duration(hours: hour ?? 0, minutes: minutes ?? 0)).millisecondsSinceEpoch);
         if (endDate().isBefore(startDate())) {
-          event.end = event.start;
+          event.start = event.end?.add(const Duration(hours: 1));
         }
       });
     }
   }
 
   Future<void> setStartDate(BuildContext context) async {
+    final hour = event.start?.hour;
+    final minutes = event.start?.minute;
+
     final newDate = await showDatePicker(
       context: context,
       initialDate: endDate(),
@@ -695,9 +719,9 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
     );
     if (newDate != null) {
       setState(() {
-        event.end = epochMillisToTZDateTime(newDate.millisecondsSinceEpoch);
+        event.start = epochMillisToTZDateTime(newDate.add(Duration(hours: hour ?? 0, minutes: minutes ?? 0)).millisecondsSinceEpoch);
         if (endDate().isBefore(startDate())) {
-          event.start = event.end;
+          event.end = event.start?.add(const Duration(hours: 1));
         }
       });
     }
