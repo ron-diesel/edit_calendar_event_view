@@ -1,3 +1,7 @@
+## 0.3.2+32
+
+* Fixed crash caused by missing implementation of method
+
 ## 0.3.1+31
 
 * fixed time issues and adjusted layout a bit

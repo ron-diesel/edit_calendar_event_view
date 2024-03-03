@@ -86,11 +86,11 @@ class EditCalendarEventViewPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    TODO("Not yet implemented")
+    this.binding = null
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    TODO("Not yet implemented")
+    this.binding = binding
   }
 
   override fun onDetachedFromActivity() {
