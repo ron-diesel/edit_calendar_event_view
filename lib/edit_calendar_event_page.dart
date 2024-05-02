@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sprintf/sprintf.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,6 +18,8 @@ import 'calendar_selection_dialog.dart';
 import 'edit_calendar_event_view_method_channel.dart';
 import 'multi_platform_dialog.dart';
 import 'multi_platform_scaffold.dart';
+
+const favoriteCalendarIdKey = "favoriteCalendarIdKey";
 
 class EditCalendarEventPage extends StatefulWidget {
   static String? currentTimeZone;
@@ -67,6 +70,14 @@ class EditCalendarEventPage extends StatefulWidget {
     if (calendar == null && event?.calendarId != null) {
       calendar = calendars
           .firstWhereOrNull((element) => element.id == event?.calendarId);
+    }
+    if (calendar == null) {
+      final prefs = await SharedPreferences.getInstance();
+      final favoriteCalendarId = prefs.getString(favoriteCalendarIdKey);
+      if (favoriteCalendarId != null) {
+        calendar = calendars
+            .firstWhereOrNull((element) => element.id == favoriteCalendarId);
+      }
     }
     calendar ??= calendars.firstWhereOrNull((element) =>
         !(element.isReadOnly ?? true) && (element.isDefault ?? false));
@@ -282,6 +293,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
         },
         focusNode: node,
         child: Builder(builder: (context) {
+          final titleHint = 'event_title'.localize();
+          final descHint = 'event_description'.localize();
           return Container(
             constraints: const BoxConstraints.expand(),
             child: ListView(
@@ -292,39 +305,38 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                   clipBehavior: Clip.hardEdge,
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(horizontalPadding),
-                        child: TextFormField(
+                  child: Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: horizontalPadding) +
+                            EdgeInsets.only(bottom: horizontalPadding),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
                           controller: _titleController,
                           maxLines: 1,
-                          decoration: InputDecoration.collapsed(
-                              hintText: 'event_title'.localize(),
+                          decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.all(8),
+                              label: Text(titleHint),
+                              // hintText:
                               hintStyle: const TextStyle(color: Colors.grey),
-                              border: InputBorder.none),
+                              border: const UnderlineInputBorder()),
                         ),
-                      ),
-                      const Divider(
-                        thickness: 1,
-                        height: 1,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(horizontalPadding),
-                        child: TextFormField(
+                        TextFormField(
                           focusNode: descriptionNode,
                           controller: _descriptionController,
                           maxLines: 100,
                           minLines: 1,
                           maxLengthEnforcement: MaxLengthEnforcement.enforced,
-                          decoration: InputDecoration.collapsed(
-                              hintText: 'event_description'.localize(),
+                          decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.all(8),
+                              label: Text(descHint),
+                              //  hintText: 'event_description'.localize(),
                               hintStyle: const TextStyle(color: Colors.grey),
-                              border: InputBorder.none),
-                        ),
-                      )
-                    ],
+                              border: const UnderlineInputBorder()),
+                        )
+                      ],
+                    ),
                   ),
                 ),
                 Card(
@@ -457,10 +469,14 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                                         calendars,
                                         calendars.firstWhereOrNull((element) =>
                                             element.id == calendar?.id));
-                                if (result?.id != null) {
+                                final id = result?.id;
+                                if (id != null) {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  await prefs.setString(favoriteCalendarIdKey, id);
                                   setState(() {
                                     calendar = result;
-                                    event.calendarId = result?.id;
+                                    event.calendarId = id;
                                   });
                                 }
                               },
@@ -547,6 +563,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
+            clipBehavior: Clip.hardEdge,
             children: <Widget>[
               for (final reminder in defaultAlarmOptions
                   .map((mins) => Reminder(minutes: mins))

@@ -19,6 +19,7 @@ dependencies:
   plugin_platform_interface: ^2.0.2
   sprintf: ^7.0.0
   timezone: ^0.9.2
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   flutter_test:
