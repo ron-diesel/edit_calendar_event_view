@@ -299,7 +299,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
             constraints: const BoxConstraints.expand(),
             child: ListView(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                  const EdgeInsets.all(12),
               children: <Widget>[
                 Card(
                   clipBehavior: Clip.hardEdge,
@@ -308,7 +308,9 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                   child: Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: horizontalPadding) +
-                            EdgeInsets.only(bottom: horizontalPadding),
+                            EdgeInsets.only(
+                                bottom: horizontalPadding,
+                                top: horizontalPadding / 2),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -473,7 +475,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                                 if (id != null) {
                                   final prefs =
                                       await SharedPreferences.getInstance();
-                                  await prefs.setString(favoriteCalendarIdKey, id);
+                                  await prefs.setString(
+                                      favoriteCalendarIdKey, id);
                                   setState(() {
                                     calendar = result;
                                     event.calendarId = id;
