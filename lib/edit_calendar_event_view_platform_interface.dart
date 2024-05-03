@@ -9,7 +9,8 @@ abstract class EditCalendarEventViewPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static EditCalendarEventViewPlatform _instance = MethodChannelEditCalendarEventView();
+  static EditCalendarEventViewPlatform _instance =
+      MethodChannelEditCalendarEventView();
 
   /// The default instance of [EditCalendarEventViewPlatform] to use.
   ///
@@ -24,8 +25,21 @@ abstract class EditCalendarEventViewPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<({ResultType resultType, String? eventId})> addOrEditCalendarEvent(
-      BuildContext context, {String? calendarId, String? eventId, String? title, String? description, int? startDate, int? endDate, bool? allDay}) async {
-    throw UnimplementedError('addOrEditCalendarEvent() has not been implemented.');
+  Future<
+          ({
+            ResultType resultType,
+            String? eventId,
+            String? calendarId,
+          })>
+      addOrEditCalendarEvent(BuildContext context,
+          {String? calendarId,
+          String? eventId,
+          String? title,
+          String? description,
+          int? startDate,
+          int? endDate,
+          bool? allDay}) async {
+    throw UnimplementedError(
+        'addOrEditCalendarEvent() has not been implemented.');
   }
 }

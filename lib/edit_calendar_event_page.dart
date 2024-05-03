@@ -84,7 +84,7 @@ class EditCalendarEventPage extends StatefulWidget {
     calendar ??=
         calendars.firstWhereOrNull((element) => !(element.isReadOnly ?? true));
     if (!context.mounted) {
-      return;
+      return null;
     }
     final page = EditCalendarEventPage(
       event: event,
@@ -96,13 +96,27 @@ class EditCalendarEventPage extends StatefulWidget {
       allDay: allDay,
     );
     if (MacosTheme.maybeOf(context) != null) {
-      return MultiPlatformDialog.show(context, page,
+      final result = await MultiPlatformDialog.show(context, page,
           barrierDismissible: true, maxWidth: 500, maxHeight: 548);
+      return result != null
+          ? (
+              resultType: result.runtimeType,
+              eventId: result.resultType,
+              calendarId: calendar?.id
+            )
+          : null;
     } else {
-      return Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => page),
       );
+      return result != null
+          ? (
+              resultType: result.runtimeType,
+              eventId: result.resultType,
+              calendarId: calendar?.id
+            )
+          : null;
     }
   }
 
@@ -298,8 +312,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
           return Container(
             constraints: const BoxConstraints.expand(),
             child: ListView(
-              padding:
-                  const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               children: <Widget>[
                 Card(
                   clipBehavior: Clip.hardEdge,

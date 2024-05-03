@@ -105,25 +105,32 @@ public class SwiftEditCalendarEventViewPlugin: NSObject, FlutterPlugin, EKEventE
             }
         }
         
-        public func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
-            if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                rootVC.dismiss(animated: true, completion: nil)
-            }
-            var eventId: String?
-            switch(action) {
-            case .saved:
-                eventId = controller.event?.eventIdentifier
-                break
-            case .deleted:
-                eventId = "deleted"
-            case .canceled:
-                eventId = nil
-            @unknown default:
-                eventId = nil
-            }
-            result?(eventId)
-            self.result = nil
+    public func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
+        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+            rootVC.dismiss(animated: true, completion: nil)
         }
+        
+        var eventData: [String: Any]? // Используем словарь для хранения данных события и календаря
+        
+        switch(action) {
+        case .saved:
+            if let event = controller.event, let calendar = event.calendar {
+                eventData = [
+                    "eventId": event.eventIdentifier,
+                    "calendarId": calendar.calendarIdentifier
+                ]
+            }
+        case .deleted:
+            eventData = ["eventId": "deleted"]
+        case .canceled:
+            eventData = nil
+        @unknown default:
+            eventData = nil
+        }
+        
+        result?(eventData) // Возвращаем словарь с данными в Flutter
+        self.result = nil
+    }
         
     }
 
