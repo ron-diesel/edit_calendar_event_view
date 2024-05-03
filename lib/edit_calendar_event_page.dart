@@ -96,27 +96,13 @@ class EditCalendarEventPage extends StatefulWidget {
       allDay: allDay,
     );
     if (MacosTheme.maybeOf(context) != null) {
-      final result = await MultiPlatformDialog.show(context, page,
+      return MultiPlatformDialog.show(context, page,
           barrierDismissible: true, maxWidth: 500, maxHeight: 548);
-      return result != null
-          ? (
-              resultType: result.runtimeType,
-              eventId: result.resultType,
-              calendarId: calendar?.id
-            )
-          : null;
     } else {
-      final result = await Navigator.push(
+      return Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => page),
       );
-      return result != null
-          ? (
-              resultType: result.runtimeType,
-              eventId: result.resultType,
-              calendarId: calendar?.id
-            )
-          : null;
     }
   }
 
@@ -269,8 +255,11 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
     final event = widget.event;
     if (event != null) {
       DeviceCalendarPlugin().deleteEvent(event.calendarId, event.eventId);
-      Navigator.pop(
-          context, (resultType: ResultType.deleted, eventId: event.eventId));
+      Navigator.pop(context, (
+        resultType: ResultType.deleted,
+        eventId: event.eventId,
+        calendarId: event.calendarId
+      ));
     }
   }
 
@@ -769,8 +758,11 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
     event.description = _descriptionController.text;
     final eventId = await DeviceCalendarPlugin().createOrUpdateEvent(event);
     if (context.mounted) {
-      Navigator.pop(
-          context, (resultType: ResultType.saved, eventId: eventId?.data));
+      Navigator.pop(context, (
+        resultType: ResultType.saved,
+        eventId: eventId?.data,
+        calendarId: event.calendarId
+      ));
     }
   }
 
