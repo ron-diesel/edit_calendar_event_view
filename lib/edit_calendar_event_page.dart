@@ -6,6 +6,7 @@ import 'package:edit_calendar_event_view/string_extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
@@ -134,7 +135,6 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
 
   late Event event;
 
-  final horizontalPadding = 16.0;
   Calendar? calendar;
 
   @override
@@ -309,13 +309,27 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
                   child: Padding(
                     padding:
-                        EdgeInsets.symmetric(horizontal: horizontalPadding) +
-                            EdgeInsets.only(
-                                bottom: horizontalPadding,
-                                top: horizontalPadding / 2),
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        ListTile(
+                          minVerticalPadding: 0,
+                          contentPadding: EdgeInsets.zero,
+                          visualDensity: const VisualDensity(
+                            vertical: VisualDensity.minimumDensity,
+                          ),
+                          title: Row(
+                            children: <Widget>[
+                              const Icon(Icons.edit_outlined),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  child: Text(
+                                'event'.localize(),
+                              )),
+                            ],
+                          ),
+                        ),
                         TextFormField(
                           controller: _titleController,
                           maxLines: 1,
@@ -338,7 +352,8 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                               //  hintText: 'event_description'.localize(),
                               hintStyle: const TextStyle(color: Colors.grey),
                               border: const UnderlineInputBorder()),
-                        )
+                        ),
+                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
@@ -351,9 +366,16 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ListTile(
-                          leading: const Icon(Icons.access_time_rounded),
+                          minVerticalPadding: 0,
+                          visualDensity: const VisualDensity(
+                            vertical: VisualDensity.minimumDensity,
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 16),
                           title: Row(
                             children: <Widget>[
+                              const Icon(Icons.access_time_rounded),
+                              const SizedBox(width: 16),
                               Expanded(child: Text('all_day'.localize())),
                               Switch.adaptive(
                                 value: allDay(),
@@ -371,9 +393,15 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                             });
                           }),
                       ListTile(
+                        minVerticalPadding: 0,
+                        visualDensity: const VisualDensity(
+                          vertical: VisualDensity.minimumDensity,
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         title: Row(
                           children: [
-                            const SizedBox(width: 26),
+                            const SizedBox(width: 30),
                             TextButton(
                                 onPressed: () async {
                                   await setStartDate(context);
@@ -400,9 +428,15 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                         },
                       ),
                       ListTile(
+                        visualDensity: const VisualDensity(
+                          vertical: VisualDensity.minimumDensity,
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
+                        minVerticalPadding: 0,
                         title: Row(
                           children: [
-                            const SizedBox(width: 26),
+                            const SizedBox(width: 30),
                             TextButton(
                                 onPressed: () async {
                                   await setEndDate(context);
@@ -443,15 +477,18 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                         children: [
                           Expanded(
                             child: ListTile(
-                              trailing: Icon(Icons.chevron_right,
-                                  color: Theme.of(context).dividerColor),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                               title: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(Icons.calendar_month),
                                   const SizedBox(width: 16),
-                                  Text(calendar?.name ??
-                                      'no_calendar'.localize()),
+                                  Expanded(
+                                    child: Text(calendar?.name ??
+                                        'no_calendar'.localize()),
+                                  ),
+                                  Icon(Icons.chevron_right,
+                                      color: Theme.of(context).dividerColor),
                                 ],
                               ),
                               onTap: () async {
@@ -528,6 +565,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                                           });
                                         },
                                       ),
+                                      const SizedBox(width: 8),
                                     ],
                                   ),
                                 Align(
@@ -617,6 +655,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                       controller: numberController,
                       keyboardType: TextInputType.number,
                     ),
+                    const SizedBox(height: 16),
                     for (final timeUnit in TimeUnit.values)
                       RadioListTile(
                         title: Text(sprintf('n_before'.localize(), [
@@ -624,6 +663,9 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                         ]).replaceAll('0', '').trim()),
                         value: TimeUnit.values.indexOf(timeUnit),
                         groupValue: currentIndex,
+                        visualDensity: const VisualDensity(
+                          vertical: VisualDensity.minimumDensity,
+                        ),
                         onChanged: (int? value) {
                           setState(() => currentIndex = value ?? 0);
                         },
