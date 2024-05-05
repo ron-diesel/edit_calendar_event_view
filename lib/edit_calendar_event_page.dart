@@ -6,7 +6,6 @@ import 'package:edit_calendar_event_view/string_extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
@@ -309,7 +308,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                       borderRadius: BorderRadius.all(Radius.circular(8.0))),
                   child: Padding(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -401,7 +400,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                             const EdgeInsets.symmetric(horizontal: 16),
                         title: Row(
                           children: [
-                            const SizedBox(width: 30),
+                            const SizedBox(width: 34),
                             TextButton(
                                 onPressed: () async {
                                   await setStartDate(context);
@@ -436,7 +435,7 @@ class _EditCalendarEventPageState extends State<EditCalendarEventPage> {
                         minVerticalPadding: 0,
                         title: Row(
                           children: [
-                            const SizedBox(width: 30),
+                            const SizedBox(width: 34),
                             TextButton(
                                 onPressed: () async {
                                   await setEndDate(context);
