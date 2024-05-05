@@ -58,7 +58,7 @@ class MethodChannelEditCalendarEventView extends EditCalendarEventViewPlatform {
         );
       }
     } else {
-      final result = await methodChannel.invokeMethod<Map<String, dynamic>>(
+      final result = await methodChannel.invokeMethod<Map<Object?, Object?>>(
         'addOrEditCalendarEvent',
         {
           'calendarId': calendarId,
