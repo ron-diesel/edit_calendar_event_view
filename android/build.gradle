@@ -25,7 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace "dev.cwolf.editCalendarEventView"
+    namespace "dev.cwolf.editCalendarEventView.edit_calendar_event_view"
     compileSdkVersion 31
 
     compileOptions {
