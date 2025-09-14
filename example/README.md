@@ -1,6 +1,6 @@
-# edit_calendar_event_view_example
+# example
 
-Demonstrates how to use the edit_calendar_event_view plugin.
+A new Flutter project.
 
 ## Getting Started
 
